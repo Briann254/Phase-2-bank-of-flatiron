@@ -1,85 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import AccountContainer from './AccountContainer';
-import './App.css';
+import React, {useEffect, useState} from "react"
+import Navbar from "./Navbar"
+import Transactions from "./Transactions"
+import TransactionForm from "./TransactionForm"
+import "./App.css"
+import SearchForm from "./SearchForm"
 
-const isEmpty = (arr) => (arr.length === 0 ? true : false);
-
+const API = "https://api.npoint.io/4fe36224ecb93bdeec6a/transactions/"
+// const local = "http://localhost:8001/transactions"
 
 function App() {
-  const [bankData, setBankData] = useState([]);
-  const [searchData, setSearchData] = useState({
-    text: '',
-  });
-  const [formData, setFormData] = useState({
-    date: '',
-    description: '',
-    category: '',
-    amount: '',
-    id: 0,
-  });
-  useEffect(async () => {
-    if (isEmpty(bankData)) {
-      await handleFetch();
+    const [transaction, setTransaction] = useState([])
+    useEffect(() => {
+        fetch(API)
+        .then((response) => response.json())
+        .then((transaction) => setTransaction(transaction))
+    }, [])
+    console.log(transaction)
+
+    function handleSubmission(Transactions) {
+        console.log(Transactions)
+        setTransaction(transaction => [...transaction, Transactions])
     }
-  }, [bankData]);
 
-  async function handleFetch() {
-    try {
-      const data = await fetch(`${url}/transactions`);
-      const res = await data.json();
-      setBankData(res);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+    // const persist = {
+    //     method: "POST",
+    //     headers:{
+    //         "Content-Type":"application/json"
+    //     },
+    //     body: JSON.stringify(Transactions)
+    // }
+    // fetch(API, persist)
+    // .then(response => response.json())
+    // .then(data =>  setTransaction(transaction => [...transaction, data])
+    // .catch(error => console.log(error)))
 
-  async function handleSearch(e) {
-    await handleFetch();
-    setBankData(
-      bankData.filter(
-        (ele) => ele.category.toLowerCase() === searchData.text.toLowerCase()
-      )
-    );
-  }
+    return (
+        <div className="rootDiv">
+            <Navbar />
+            <SearchForm />
+            <TransactionForm prop={handleSubmission} />
+            <Transactions transactions={transaction} />
+        </div>
+    )
 
-  async function updateJsonServer() {
-    const rawResponse = await fetch(`${url}/transactions`, {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify(formData),
-    });
-    const response = await rawResponse.json();
-    setBankData(response);
-  }
-
-  function handleAddTRansaction(e) {
-    e.preventDefault();
-    if (bankData.length > 0) {
-      setFormData({ ...formData, id: bankData[bankData.length - 1].id + 1 });
-      updateJsonServer();
-      window.location.reload()
-    }
-  }
-
-  return (
-    <div className='ui raised segment'>
-      <div className='ui segment violet inverted'>
-        <h2>The Royal Bank of Flatiron</h2>
-      </div>
-      <AccountContainer
-        bankData={bankData}
-        handleSearch={handleSearch}
-        setSearchData={setSearchData}
-        searchData={searchData}
-        handleSubmit={handleAddTRansaction}
-        setFormData={setFormData}
-        formData={formData}
-      />
-    </div>
-  );
 }
 
-export default App;
+export default App
